@@ -9,7 +9,32 @@ function resizeCanvas() {
 }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
+// Audio setup
+const audioFile = document.getElementById("audioFile");
+const audioPlayer = document.getElementById("audioPlayer");
 
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+const analyser = audioContext.createAnalyser();
+analyser.fftSize = 256;
+
+let audioSource;
+const audioData = new Uint8Array(analyser.frequencyBinCount);
+
+audioFile.addEventListener("change", () => {
+  const file = audioFile.files[0];
+  if (!file) return;
+
+  audioPlayer.src = URL.createObjectURL(file);
+  audioPlayer.load();
+
+  audioPlayer.onplay = () => {
+    if (audioSource) audioSource.disconnect();
+
+    audioSource = audioContext.createMediaElementSource(audioPlayer);
+    audioSource.connect(analyser);
+    analyser.connect(audioContext.destination);
+  };
+});
 // Particle system
 class Particle {
   constructor() {
